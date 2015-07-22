@@ -1,0 +1,105 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <!-- when using the mode "code", it's important to specify charset utf-8 -->
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <!--Jquery plugin-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css'>
+
+    <!--Jsoneditor plugin-->
+    <link href="libs/jsoneditor/dist/jsoneditor.min.css" rel="stylesheet" type="text/css">
+    <script src="libs/jsoneditor/dist/jsoneditor.min.js"></script>
+    <style>
+        .editor {
+        width: 350px;
+        height: 300px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3">
+            <h3 class="text-center">Data</h3>
+            <!--the json editor with data-->
+            <div id="editor" class="editor" ></div>
+        </div>
+
+        <div class="col-md-3 col-md-offset-1">
+            <h3 class="text-center">Transform</h3>
+            <!--the transform editor-->
+            <div id="transformEditor" class="editor col-md-4" ></div>
+        </div>
+        <div class="col-md-1">
+            <!--button to handle the click event and transform the json to html-->
+            <button id="transform" class="btn btn-success" style="margin-top: 200px;">=</button>
+        </div>
+
+        <div class="col-md-4" >
+            <h3 class="text-center">Html</h3>
+            <button id="save" class="btn btn-default btn-primary">Save</button>
+            <!--Html data display-->
+            <div id="displayEditor" class="editor col-md-4" style="border:1px solid #97B0F8; text-align: center;"></div>
+        </div>
+    </div>
+</div>
+<script>
+
+    var container = document.getElementById('editor');
+    var container1 = document.getElementById('transformEditor');
+    var container2 = document.getElementById('displayEditor');
+
+    var editor = new JSONEditor(container);
+    var transformEditor = new JSONEditor(container1);
+    transformEditor.setMode('text');
+    /*on page load get the data from DB and set it to the editors*/
+    $(document).ready(function(){
+        $.ajax({
+            url:'/dataLoad',
+            method:'GET'
+        }).success(function(data){
+            console.log(data);
+            editor.set(data[0]);
+            transformEditor.set(data[1]);
+        }).error(function(data){
+            alert(data);
+        });
+    });
+    /*on clicking the button tranform it to the html content and display it in the div*/
+    $('#transform').on('click',function(){
+        var data = editor.get();
+        var trans = transformEditor.get();
+        console.log(data);
+        console.log(trans);
+        $.ajax({
+            url:'/dataTransform',
+            method:'POST',
+            data:{data:data,transform:trans}
+        }).success(function(data){
+            console.log(data);
+            container2.innerHTML=data;
+        }).error(function(data){
+            alert(data);
+        });
+    });
+
+    $('#save').on('click',function(){
+        var jsondata = editor.get();
+        var trans = transformEditor.get();
+        var htmldata = document.getElementById('displayEditor').innerHTML;
+        console.log(htmldata);
+        $.ajax({
+            url:'/saveData',
+            method:'POST',
+            data:{jsondata:jsondata,trans:trans,htmldata:htmldata}
+        }).success(function(data){
+            alert(data);
+        }).error(function(data){
+            alert(data);
+        });
+    });
+</script>
+</body>
+</html>
